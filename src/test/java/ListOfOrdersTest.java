@@ -1,3 +1,4 @@
+import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import ru.yandex.praktikum.api.OrderApi;
 import io.restassured.response.ValidatableResponse;
@@ -5,7 +6,6 @@ import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
 import static org.hamcrest.CoreMatchers.notNullValue;
-
 
 public class ListOfOrdersTest {
 
@@ -16,10 +16,10 @@ public class ListOfOrdersTest {
         orderApi = new OrderApi();
     }
 
-    @DisplayName("В теле ответа есть список заказов")
     @Test
+    @Description("Проверка на то, тело ответа возвращает список заказов")
+    @DisplayName("Получить список заказов")
     public void getListOfOrdersTest() {
-
         ValidatableResponse response = orderApi.getListOfOrders();
 
         response

@@ -1,10 +1,12 @@
+import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
-import ru.yandex.praktikum.api.CourierApi;
-import ru.yandex.praktikum.data.CourierData;
 import io.restassured.response.ValidatableResponse;
-import org.apache.http.HttpStatus;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import ru.yandex.praktikum.api.CourierApi;
+import ru.yandex.praktikum.data.CourierData;
+import static org.apache.http.HttpStatus.*;
 import static org.hamcrest.Matchers.is;
 
 public class CreateCourierTest {
@@ -15,85 +17,87 @@ public class CreateCourierTest {
     @Before
     public void setUp() {
         courierApi = new CourierApi();
+        newCourier = new CourierData();
     }
 
-    @DisplayName("Курьера можно создать со всеми полями")
+    @After
+    public void cleanUp() {
+        ValidatableResponse loginResponse = courierApi.loginCourier(newCourier);
+
+        if (loginResponse.extract().statusCode() == SC_OK) {
+            Integer courierId = loginResponse.extract().path("id");
+            if (courierId != null) {
+                courierApi.deleteCourier(courierId);
+            }
+        }
+    }
+
     @Test
+    @Description("Проверка на то, что курьера можно создать со всеми полями")
+    @DisplayName("Создать курьера")
     public void createCourierTest() {
-        newCourier = new CourierData("Satoru_", "12", "Gojo_");
         ValidatableResponse response = courierApi.createCourier(newCourier);
 
         response
                 .log().all()
                 .assertThat()
-                .statusCode(HttpStatus.SC_CREATED)
+                .statusCode(SC_CREATED)
                 .body("ok", is(true));
-
-        ValidatableResponse loginResponse = courierApi.loginCourier(newCourier);
-        int courierId = loginResponse.extract().path("id");
-        courierApi.deleteCourier(courierId);
     }
 
-    @DisplayName("Двух одинаковых курьеров нельзя создать")
     @Test
+    @Description("Проверка на то, что нельзя создать двух одинаковых курьеров")
+    @DisplayName("Создать двух одинаковых курьеров")
     public void createTwoSameCouriersTest() {
-        newCourier = new CourierData("Satoru_", "12", "Gojo_");
         courierApi.createCourier(newCourier);
         ValidatableResponse response = courierApi.createCourier(newCourier);
 
         response
                 .log().all()
                 .assertThat()
-                .statusCode(HttpStatus.SC_CONFLICT)
+                .statusCode(SC_CONFLICT)
                 .body("message", is("Этот логин уже используется. Попробуйте другой."));
-
-        ValidatableResponse loginResponse = courierApi.loginCourier(newCourier);
-        int courierId = loginResponse.extract().path("id");
-        courierApi.deleteCourier(courierId);
     }
 
-    @DisplayName("Курьера можно создать только с обязательными полями")
     @Test
+    @Description("Чтобы создать курьера, нужно передать в ручку все обязательные поля")
+    @DisplayName("Создать курьера без firstname")
     public void createCourierWithoutFirstNameTest() {
-        newCourier = new CourierData("Satoru_", "12");
+        newCourier.setFirstName(null);
         ValidatableResponse response = courierApi.createCourier(newCourier);
 
         response
                 .log().all()
                 .assertThat()
-                .statusCode(HttpStatus.SC_CREATED)
+                .statusCode(SC_CREATED)
                 .body("ok", is(true));
-
-        ValidatableResponse loginResponse = courierApi.loginCourier(newCourier);
-        int courierId = loginResponse.extract().path("id");
-        courierApi.deleteCourier(courierId);
     }
 
-    @DisplayName("Курьера нельзя создать без обязательного поля - логина")
     @Test
+    @Description("Чтобы создать курьера, нужно передать в ручку все обязательные поля")
+    @DisplayName("Создать курьера без login")
     public void createCourierWithoutLoginTest() {
-        newCourier = new CourierData("Satoru_", "12", "Gojo_");
         newCourier.setLogin(null);
         ValidatableResponse response = courierApi.createCourier(newCourier);
 
         response
                 .log().all()
                 .assertThat()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .statusCode(SC_BAD_REQUEST)
                 .body("message", is("Недостаточно данных для создания учетной записи"));
     }
 
-    @DisplayName("Курьера нельзя создать без обязательного поля - пароля")
     @Test
+    @Description("Чтобы создать курьера, нужно передать в ручку все обязательные поля")
+    @DisplayName("Создать курьера без password")
     public void createCourierWithoutPasswordTest() {
-        newCourier = new CourierData("Satoru_", "12", "Gojo_");
         newCourier.setPassword(null);
         ValidatableResponse response = courierApi.createCourier(newCourier);
 
         response
                 .log().all()
                 .assertThat()
-                .statusCode(HttpStatus.SC_BAD_REQUEST)
+                .statusCode(SC_BAD_REQUEST)
                 .body("message", is("Недостаточно данных для создания учетной записи"));
     }
 }

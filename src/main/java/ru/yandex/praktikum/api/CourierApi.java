@@ -1,8 +1,8 @@
 package ru.yandex.praktikum.api;
 
-import ru.yandex.praktikum.data.CourierData;
 import io.qameta.allure.Step;
 import io.restassured.response.ValidatableResponse;
+import ru.yandex.praktikum.data.CourierData;
 import static io.restassured.RestAssured.given;
 
 public class CourierApi extends RestApi {
@@ -11,16 +11,16 @@ public class CourierApi extends RestApi {
     public static final String LOGIN_COURIER = "api/v1/courier/login";
     public static final String DELETE_COURIER = "api/v1/courier/:id";
 
-    @Step("Создание курьера")
+    @Step("POST-запрос на создание курьера")
     public ValidatableResponse createCourier(CourierData newCourier) {
-       return given()
+        return given()
                 .spec(requestSpecification())
                 .and().body(newCourier)
                 .when().post(CREATE_COURIER)
                 .then();
     }
 
-    @Step("Авторизация курьера")
+    @Step("POST-запрос на авторизацию курьера")
     public ValidatableResponse loginCourier(CourierData newCourier) {
         return given()
                 .spec(requestSpecification())
@@ -29,11 +29,11 @@ public class CourierApi extends RestApi {
                 .then();
     }
 
-    @Step("Удаление курьера")
+    @Step("DELETE-запрос на удаление курьера")
     public void deleteCourier(int courierId) {
         given()
                 .spec(requestSpecification())
-                .when()
-                .delete(DELETE_COURIER.replace(":id", String.valueOf(courierId)));
+                .when().delete(DELETE_COURIER.replace(":id", String.valueOf(courierId)))
+                .then().log().all();
     }
 }
